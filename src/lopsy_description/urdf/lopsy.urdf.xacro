@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<robot name="lopsy" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:property name="D"  value="6.2e-3"/>
+    <xacro:property name="L"  value="15.0e-3"/>
+    <xacro:property name="A1" value="2.852192760591869e-3"/>
+    <xacro:property name="A2" value="1.7996499303620725e-3"/>
+    <xacro:property name="R1" value="5.097599138297361e-3"/>
+    <xacro:property name="R2" value="2.0016716701488235e-3"/>
+
+    <!-- Link mesh. STL frame: origin at a corner of the bounding box on the flat top,
+         +y toward the arcs (along the backbone), +x toward the R2 arc.
+         Link axis in the STL at x = cx, z = cz.
+         QUICK TEST: absolute path. -->
+    <xacro:property name="link_mesh"  value="file://$(find lopsy_description)/meshes/link.STL"/>
+    <xacro:property name="mesh_scale" value="0.001 0.001 0.001"/>  <!-- STL in mm -->
+    <xacro:property name="cx" value="${D/2}"/>  <!-- STL axis offset, x [m] -->
+    <xacro:property name="cz" value="${D/2}"/>  <!-- STL axis offset, z [m] -->
+
+    <material name="protagonist"><color rgba="0.85 0.45 0.15 1"/></material>
+    <material name="antagonist"><color rgba="0.25 0.45 0.80 1"/></material>
+    <material name="base"><color rgba="0.4 0.4 0.4 1"/></material>
+
+    <!-- Base; origin at its bottom, flat top at z = L -->
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${D/2.0}" length="${L}"/>
+            </geometry>
+            <origin xyz="0 0 ${L/2.0}" rpy="0 0 0" />
+            <material name="base"/>
+        </visual>
+    </link>
+
+    <!--
+    n      ; joint/link index (1..15)
+    parent ; link whose flat top this link rolls on
+    role   ; P = protagonist (odd-numbered, At=A1, R_left=R1)
+             A = antagonist  (even-numbered, At=A2, R_left=R2)
+    top    ; height of the parent's flat top in the parent frame
+    offset ; x of this link's arc tip on the parent's flat top at theta = 0
+             (= At_parent - At_this, keeps the rod holes aligned)
+    -->
+    <xacro:macro name="rolling_link" params="n parent role top offset">
+        <xacro:property name="At"      value="${A1 if role == 'P' else A2}"/>
+        <xacro:property name="Ac"      value="${A2 if role == 'P' else A1}"/>
+        <xacro:property name="R_left"  value="${R1 if role == 'P' else R2}"/>
+        <xacro:property name="R_right" value="${R2 if role == 'P' else R1}"/>
+        <xacro:property name="alpha"   value="${asin(At / R_left)}"/>   <!-- max +theta (arc span) -->
+        <xacro:property name="beta"    value="${asin(Ac / R_right)}"/>  <!-- max -theta (arc span) -->
+        <xacro:property name="s"       value="${1 if role == 'P' else -1}"/>
+
+        <!-- Left arc (theta >= 0) -->
+        <joint name="j${n}_slide_l" type="prismatic">
+            <parent link="${parent}"/>
+            <child link="j${n}_slide_l_link"/>
+            <origin xyz="${offset} 0 ${top}"/>
+            <axis xyz="1 0 0"/>
+            <limit lower="0" upper="${R_left * alpha}" effort="10" velocity="1"/>
+            <mimic joint="j${n}_roll_l" multiplier="${R_left}" offset="0"/>
+        </joint>
+        <link name="j${n}_slide_l_link"/>
+
+        <joint name="j${n}_roll_l" type="revolute">
+            <parent link="j${n}_slide_l_link"/>
+            <child link="j${n}_roll_l_link"/>
+            <origin xyz="0 0 ${R_left}"/>
+            <axis xyz="0 1 0"/>
+            <limit lower="0" upper="${alpha}" effort="10" velocity="1"/>
+        </joint>
+        <link name="j${n}_roll_l_link"/>
+
+        <!-- Right arc (theta <= 0) -->
+        <joint name="j${n}_slide_r" type="prismatic">
+            <parent link="j${n}_roll_l_link"/>
+            <child link="j${n}_slide_r_link"/>
+            <origin xyz="0 0 ${-R_left}"/>
+            <axis xyz="1 0 0"/>
+            <limit lower="${-R_right * beta}" upper="0" effort="10" velocity="1"/>
+            <mimic joint="j${n}_roll_r" multiplier="${R_right}" offset="0"/>
+        </joint>
+        <link name="j${n}_slide_r_link"/>
+
+        <joint name="j${n}_roll_r" type="revolute">
+            <parent link="j${n}_slide_r_link"/>
+            <child link="j${n}_roll_r_link"/>
+            <origin xyz="0 0 ${R_right}"/>
+            <axis xyz="0 1 0"/>
+            <limit lower="${-beta}" upper="0" effort="10" velocity="1"/>
+        </joint>
+        <link name="j${n}_roll_r_link"/>
+
+        <joint name="j${n}_to_link" type="fixed">
+            <parent link="j${n}_roll_r_link"/>
+            <child link="link_${n}"/>
+            <origin xyz="0 0 ${-R_right}"/>
+        </joint>
+
+        <!-- Physical link. STL axis sits midway between the rod holes,
+             x = (At - Ac)/2 from the arc tip; flat top at z = L.
+             P; rpy = (pi/2, pi, 0)   STL +y -> -z, +x (R2) -> -x, axis offset (cx, cz) -> (-x, -y)
+             A; rpy = (-pi/2, 0, 0)   STL +y -> -z, +x (R2) -> +x, axis offset (cx, cz) -> (+x, +y) -->
+        <link name="link_${n}">
+            <visual>
+                <origin xyz="${(At - Ac)/2 + s*cx} ${s*cz} ${L}"
+                        rpy="${pi/2 if role == 'P' else -pi/2} ${pi if role == 'P' else 0} 0"/>
+                <geometry><mesh filename="${link_mesh}" scale="${mesh_scale}"/></geometry>
+                <material name="${'protagonist' if role == 'P' else 'antagonist'}"/>
+            </visual>
+        </link>
+    </xacro:macro>
+
+    <xacro:rolling_link n="1"  parent="base_link" role="P" top="${L}" offset="${(A2 - A1)/2}"/>
+    <xacro:rolling_link n="2"  parent="link_1"    role="A" top="${L}" offset="${A1 - A2}"/>
+    <xacro:rolling_link n="3"  parent="link_2"    role="P" top="${L}" offset="${A2 - A1}"/>
+    <xacro:rolling_link n="4"  parent="link_3"    role="A" top="${L}" offset="${A1 - A2}"/>
+    <xacro:rolling_link n="5"  parent="link_4"    role="P" top="${L}" offset="${A2 - A1}"/>
+    <xacro:rolling_link n="6"  parent="link_5"    role="A" top="${L}" offset="${A1 - A2}"/>
+    <xacro:rolling_link n="7"  parent="link_6"    role="P" top="${L}" offset="${A2 - A1}"/>
+    <xacro:rolling_link n="8"  parent="link_7"    role="A" top="${L}" offset="${A1 - A2}"/>
+    <xacro:rolling_link n="9"  parent="link_8"    role="P" top="${L}" offset="${A2 - A1}"/>
+    <xacro:rolling_link n="10" parent="link_9"    role="A" top="${L}" offset="${A1 - A2}"/>
+    <xacro:rolling_link n="11" parent="link_10"   role="P" top="${L}" offset="${A2 - A1}"/>
+    <xacro:rolling_link n="12" parent="link_11"   role="A" top="${L}" offset="${A1 - A2}"/>
+    <xacro:rolling_link n="13" parent="link_12"   role="P" top="${L}" offset="${A2 - A1}"/>
+    <xacro:rolling_link n="14" parent="link_13"   role="A" top="${L}" offset="${A1 - A2}"/>
+    <xacro:rolling_link n="15" parent="link_14"   role="P" top="${L}" offset="${A2 - A1}"/>
+
+    <!-- Tip frame on top of the last link -->
+    <joint name="tip_joint" type="fixed">
+        <parent link="link_15"/>
+        <child link="tip"/>
+        <origin xyz="0 0 ${L}"/>
+    </joint>
+    <link name="tip"/>
+
+</robot>
