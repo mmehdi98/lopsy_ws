@@ -7,9 +7,24 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(lopsy_interfaces REQUIRED)
+
+add_library(tendon_kinematics STATIC src/tendon_kinematics.cpp)
+target_include_directories(tendon_kinematics PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+
+add_executable(lopsy_state_publisher src/lopsy_state_publisher.cpp)
+target_link_libraries(lopsy_state_publisher PRIVATE rclcpp::rclcpp tendon_kinematics ${lopsy_interfaces_TARGETS} ${sensor_msgs_TARGETS})
+
+add_executable(tendon_force_publisher src/tendon_force_publisher.cpp)
+target_link_libraries(tendon_force_publisher PRIVATE rclcpp::rclcpp ${lopsy_interfaces_TARGETS})
+
+install(TARGETS
+  lopsy_state_publisher
+  tendon_force_publisher
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
