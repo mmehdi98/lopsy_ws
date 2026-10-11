@@ -21,6 +21,7 @@ public:
 
         joint_positions_ = tendon_kinematics::calculate_joint_angles(forces);
 
+        msg.header.stamp = this -> now();
         msg.name = joint_names_;
         msg.position = joint_positions_;
 
