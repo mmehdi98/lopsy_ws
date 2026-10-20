@@ -5,7 +5,7 @@
 namespace lopsy_kinematics
 {
 
-std::vector<std::string> urdf_joint_names(int n)
+std::vector<std::string> urdf_joint_names(std::size_t n)
 {
   std::vector<std::string> names;
   names.reserve(2*n);

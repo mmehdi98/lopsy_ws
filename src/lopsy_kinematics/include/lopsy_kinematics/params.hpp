@@ -31,7 +31,7 @@ enum class Side
 struct RobotParams
 {
   // ---- Geometry (paper Table II; fitted values where identified) ----------
-  int n = 15;            ///< number of links (= number of joints)
+  std::size_t n = 15;    ///< number of links (= number of joints)
   double L = 15.0e-3;    ///< link length, crest to flat top [m]
   double D = 6.2e-3;     ///< link diameter [m] (only used for drawing)
   double A1 = 3.21e-3;   ///< larger hole-to-crest-line distance [m]   (fit, ±0.17 mm)

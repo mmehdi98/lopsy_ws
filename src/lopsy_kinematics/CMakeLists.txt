@@ -11,13 +11,18 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(lopsy_interfaces REQUIRED)
 
-add_library(tendon_kinematics STATIC src/tendon_kinematics.cpp)
-target_include_directories(tendon_kinematics PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+add_library(lopsy_model STATIC
+  src/lib/joint_state_mapping.cpp
+  src/lib/link_geometry.cpp
+  src/lib/mechanics.cpp
+  src/lib/model.cpp
+  src/lib/statics.cpp)
+target_include_directories(lopsy_model PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
-add_executable(lopsy_state_publisher src/lopsy_state_publisher.cpp)
-target_link_libraries(lopsy_state_publisher PRIVATE rclcpp::rclcpp tendon_kinematics ${lopsy_interfaces_TARGETS} ${sensor_msgs_TARGETS})
+add_executable(lopsy_state_publisher src/node/lopsy_state_publisher.cpp)
+target_link_libraries(lopsy_state_publisher PRIVATE rclcpp::rclcpp lopsy_model ${lopsy_interfaces_TARGETS} ${sensor_msgs_TARGETS})
 
-add_executable(tendon_force_publisher src/tendon_force_publisher.cpp)
+add_executable(tendon_force_publisher src/node/tendon_force_publisher.cpp)
 target_link_libraries(tendon_force_publisher PRIVATE rclcpp::rclcpp ${lopsy_interfaces_TARGETS})
 
 install(TARGETS

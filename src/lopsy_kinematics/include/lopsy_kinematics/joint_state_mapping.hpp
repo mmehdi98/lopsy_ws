@@ -17,7 +17,7 @@ namespace lopsy_kinematics
 
 /// "j1_roll_l", "j1_roll_r", "j2_roll_l", ..., "j{n}_roll_r"  (size 2n).
 /// Build once at start-up, not per message.
-std::vector<std::string> urdf_joint_names(int n);
+std::vector<std::string> urdf_joint_names(std::size_t n);
 
 /// Positions in the same order as urdf_joint_names():
 ///   [max(theta_1, 0), min(theta_1, 0), max(theta_2, 0), ...]  (size 2n).
