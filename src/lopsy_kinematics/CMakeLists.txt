@@ -41,6 +41,14 @@ if(BUILD_TESTING)
   # a copyright and license is added to all source files
   set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_lopsy_model
+    test/test_link_geometry.cpp
+    test/test_mechanics.cpp
+    test/test_statics.cpp
+    test/test_kinematics.cpp)
+  target_link_libraries(test_lopsy_model lopsy_model)
 endif()
 
 ament_package()

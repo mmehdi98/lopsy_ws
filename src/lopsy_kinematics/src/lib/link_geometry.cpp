@@ -7,7 +7,7 @@ namespace lopsy_kinematics
 
 std::vector<Link> build_links(const RobotParams& params)
 {
-  std::vector<Link> links;
+  std::vector<Link> links(params.n);
 
   for (std::size_t k = 0; k < links.size(); ++k)
   {

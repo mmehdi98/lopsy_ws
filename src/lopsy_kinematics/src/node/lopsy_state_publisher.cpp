@@ -17,7 +17,7 @@ public:
     LopsyStatePublisherNode() : Node("lopsy_state_publisher"){
         model_ = std::make_shared<ContinuumRobotModel>(params_, solver_settings_);
         joint_names_ = urdf_joint_names(model_->params().n);
-        joint_positions_.reserve(2*model_->params().n);
+        joint_positions_ = std::vector<double>(2*model_->params().n,0.0);
 
         joint_state_publisher_ = this -> create_publisher<JointState>("joint_states", 10);
         input_force_subscriber_ = this -> create_subscription<TendonForces>("tendon_forces", 10, std::bind(&LopsyStatePublisherNode::publishJointStates, this, _1));
@@ -29,6 +29,10 @@ public:
 
         auto rob_state = model_ -> solve(F0);
         joint_positions_ = urdf_joint_positions(rob_state.theta);
+        
+        // for (size_t i = 1; i < joint_positions_.size(); i += 2) {
+        //     joint_positions_[i] = -0.1;
+        // }
 
         msg.header.stamp = this -> now();
         msg.name = joint_names_;
