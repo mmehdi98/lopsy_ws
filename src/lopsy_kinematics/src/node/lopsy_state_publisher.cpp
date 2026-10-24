@@ -14,6 +14,8 @@ class LopsyStatePublisherNode : public rclcpp::Node
 {
 public:
     LopsyStatePublisherNode() : Node("lopsy_state_publisher"){
+        params_ = declare_robot_params();
+        solver_settings_ = declare_solver_settings();
         model_ = std::make_shared<ContinuumRobotModel>(params_, solver_settings_);
         joint_names_ = urdf_joint_names(model_->params().n);
         joint_positions_ = std::vector<double>(2*model_->params().n,0.0);
@@ -62,7 +64,7 @@ private:
     {
         const RobotParams d;  // defaults
         RobotParams p;
-        p.n = declare_parameter<int>("n_links", d.n);
+        p.n = declare_parameter<int64_t>("n_links", d.n);
 
         p.L = declare_parameter("geometry.L", d.L);
         p.D = declare_parameter("geometry.D", d.D);
@@ -92,7 +94,7 @@ private:
         s.bracket_margin = declare_parameter("solver.bracket_margin", d.bracket_margin);
         s.stop_stiffness = declare_parameter("solver.stop_stiffness", d.stop_stiffness);
         s.angle_tolerance = declare_parameter("solver.angle_tolerance", d.angle_tolerance);
-        s.max_iterations = declare_parameter<int>("solver.max_iterations", d.max_iterations);
+        s.max_iterations = declare_parameter<int64_t>("solver.max_iterations", d.max_iterations);
         return s;
     }
     
