@@ -11,11 +11,14 @@
     <node pkg="rviz2" exec="rviz2" args="-d $(var rviz_config_path)"/>
 
     <node pkg="lopsy_kinematics" exec="lopsy_state_publisher"/>
-    <node pkg="lopsy_kinematics" exec="rod_tension_publisher">
+
+    <node pkg="lopsy_kinematics" exec="tension_slider_gui" if="$(var gui)">
+        <param name="max_tension" value="50.0"/>
+    </node>
+    
+    <node pkg="lopsy_kinematics" exec="rod_tension_publisher" unless="$(var gui)">
         <param name="left_tension" value="20.0"/>
         <param name="right_tension" value="0.0"/>
     </node>
-
-    <node pkg="rqt_reconfigure" exec="rqt_reconfigure" args="--clear-config" if="$(var gui)"/>
     
 </launch>
