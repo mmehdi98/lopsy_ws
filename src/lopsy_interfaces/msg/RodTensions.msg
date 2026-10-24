@@ -1,0 +1,2 @@
+float64 left_tension
+float64 right_tension

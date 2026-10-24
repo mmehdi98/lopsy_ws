@@ -2,9 +2,8 @@
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "lopsy_kinematics/joint_state_mapping.hpp"
 #include "lopsy_kinematics/model.hpp"
-#include "lopsy_interfaces/msg/tendon_forces.hpp"
+#include "lopsy_interfaces/msg/rod_tensions.hpp"
 
-using TendonForces = lopsy_interfaces::msg::TendonForces;
 using JointState = sensor_msgs::msg::JointState;
 using namespace std::placeholders;
 
@@ -20,12 +19,12 @@ public:
         joint_positions_ = std::vector<double>(2*model_->params().n,0.0);
 
         joint_state_publisher_ = this -> create_publisher<JointState>("joint_states", 10);
-        input_force_subscriber_ = this -> create_subscription<TendonForces>("tendon_forces", 10, std::bind(&LopsyStatePublisherNode::publishJointStates, this, _1));
+        input_force_subscriber_ = this -> create_subscription<lopsy_interfaces::msg::RodTensions>("tendon_forces", 10, std::bind(&LopsyStatePublisherNode::publishJointStates, this, _1));
     }
 
-    void publishJointStates(const TendonForces& tendon_forces){
+    void publishJointStates(const lopsy_interfaces::msg::RodTensions& rod_tensions){
         JointState msg;
-        const RodTensions F0 {tendon_forces.tendong_forces[0],tendon_forces.tendong_forces[1]};
+        const RodTensions F0 {.left=rod_tensions.left_tension, .right=rod_tensions.right_tension};
 
         auto rob_state = model_ -> solve(F0);
         joint_positions_ = urdf_joint_positions(rob_state.theta);
@@ -44,7 +43,7 @@ public:
 
 private:
     rclcpp::Publisher<JointState>::SharedPtr joint_state_publisher_;
-    rclcpp::Subscription<TendonForces>::SharedPtr input_force_subscriber_;
+    rclcpp::Subscription<lopsy_interfaces::msg::RodTensions>::SharedPtr input_force_subscriber_;
     std::shared_ptr<lopsy_kinematics::ContinuumRobotModel> model_;
     RobotParams params_;
     SolverSettings solver_settings_;
