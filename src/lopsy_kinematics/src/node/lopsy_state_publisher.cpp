@@ -21,7 +21,7 @@ public:
         joint_positions_ = std::vector<double>(2*model_->params().n,0.0);
 
         joint_state_publisher_ = this -> create_publisher<JointState>("joint_states", 10);
-        input_force_subscriber_ = this -> create_subscription<lopsy_interfaces::msg::RodTensions>("tendon_forces", 10, std::bind(&LopsyStatePublisherNode::publishJointStates, this, _1));
+        input_force_subscriber_ = this -> create_subscription<lopsy_interfaces::msg::RodTensions>("rod_tensions", 10, std::bind(&LopsyStatePublisherNode::publishJointStates, this, _1));
     }
 
     void publishJointStates(const lopsy_interfaces::msg::RodTensions& rod_tensions){

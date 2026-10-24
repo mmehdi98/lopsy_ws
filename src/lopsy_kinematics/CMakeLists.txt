@@ -22,12 +22,12 @@ target_include_directories(lopsy_model PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_
 add_executable(lopsy_state_publisher src/node/lopsy_state_publisher.cpp)
 target_link_libraries(lopsy_state_publisher PRIVATE rclcpp::rclcpp lopsy_model ${lopsy_interfaces_TARGETS} ${sensor_msgs_TARGETS})
 
-add_executable(tendon_force_publisher src/node/tendon_force_publisher.cpp)
-target_link_libraries(tendon_force_publisher PRIVATE rclcpp::rclcpp ${lopsy_interfaces_TARGETS})
+add_executable(rod_tension_publisher src/node/rod_tension_publisher.cpp)
+target_link_libraries(rod_tension_publisher PRIVATE rclcpp::rclcpp ${lopsy_interfaces_TARGETS})
 
 install(TARGETS
   lopsy_state_publisher
-  tendon_force_publisher
+  rod_tension_publisher
   DESTINATION lib/${PROJECT_NAME}
 )
 

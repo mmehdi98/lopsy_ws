@@ -3,12 +3,19 @@
     <let name="urdf_path" value="$(find-pkg-share $(var pkg_name))/urdf/lopsy.urdf.xacro" />
     <let name="rviz_config_path" value="$(find-pkg-share $(var pkg_name))/rviz/lopsy_rviz_config.rviz" />
 
+    <arg name="gui" default="true" description="Open rqt_reconfigure with the tension sliders"/>
+
     <node pkg="robot_state_publisher" exec="robot_state_publisher">
         <param name="robot_description" value="$(command 'xacro $(var urdf_path)')"/>
     </node>
     <node pkg="rviz2" exec="rviz2" args="-d $(var rviz_config_path)"/>
 
     <node pkg="lopsy_kinematics" exec="lopsy_state_publisher"/>
-    <node pkg="lopsy_kinematics" exec="tendon_force_publisher"/>
+    <node pkg="lopsy_kinematics" exec="rod_tension_publisher">
+        <param name="left_tension" value="20.0"/>
+        <param name="right_tension" value="0.0"/>
+    </node>
+
+    <node pkg="rqt_reconfigure" exec="rqt_reconfigure" args="--clear-config" if="$(var gui)"/>
     
 </launch>
