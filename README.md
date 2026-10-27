@@ -144,16 +144,9 @@ Two details keep it robust:
 
 URDF has no rolling joint, so [`lopsy.urdf.xacro`](src/lopsy_description/urdf/lopsy.urdf.xacro) builds each one from four joints, two per arc: a prismatic joint that moves the link by $R\,\theta$ along the top of the link below, and a revolute joint about the arc's centre. The prismatic joints are `<mimic>` copies of the revolute ones. `j{i}_roll_l` carries $\theta_i$ when it is positive and `j{i}_roll_r` when it is negative, with the arc spans $\alpha_i$ and $\beta_i$ as limits. The model node publishes these 30 roll joints, and `robot_state_publisher` fills in the slides and broadcasts the transforms.
 
-<!--
-  MEDIA · RViz close-up
-  Needs a new screenshot: nothing in the thesis images shows RViz. Two or three links at a clear bend,
-  showing a link rolling on its arc (TF axes on can help), or the left rod pulled vs the right rod pulled.
-  Save as docs/media/rviz_rolling.png, then uncomment the lines below. Delete this block if you skip it.
-
 <p align="center">
   <img src="docs/media/rviz_rolling.png" width="600" alt="Close-up of the links rolling on their arcs in RViz">
 </p>
--->
 
 Positive angles bend the robot toward +x of `base_link`. Odd links are drawn orange and even links blue.
 
