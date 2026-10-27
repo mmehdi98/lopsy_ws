@@ -7,7 +7,7 @@
 [![IEEE RA-L](https://img.shields.io/badge/IEEE%20RA--L-10.1109%2FLRA.2025.3597860-00629B)](https://doi.org/10.1109/LRA.2025.3597860)
 
 <p align="center">
-  <img src="docs/media/lopsy_demo.gif" alt="Lopsy bending left and right in RViz as the rod tensions change">
+  <img src="docs/media/lopsy_demo.gif" width="720" alt="Lopsy bending left and right in RViz as the rod tensions change">
 </p>
 
 ## Why asymmetric
@@ -16,7 +16,17 @@ Continuum robots are slender and flexible, and that is also their weakness: they
 
 Lopsy moves the pivot off-centre. The underside of each link is two arcs of different radii that meet at a crest away from the middle. With the same rod spacing, the rod on the far side now pulls with a 3 mm lever instead of 2 mm, and the rod on the near side with 1 mm. Asymmetry doesn't add leverage; it moves it from one bending direction to the other: 50 % more torque per newton one way, half as much the other way, without making the robot any thicker.
 
+<p align="center">
+  <img src="docs/media/link_geometry.png" width="360" alt="Dimensioned side view of one link: the arcs R1 and R2 meet at the crest, and the rod holes sit A1 and A2 from it">
+  <br><sub>One link. It rolls on its crest, and the rods pass A1 = 3 mm and A2 = 1 mm from it.<br>Adapted from Lari &amp; Russo, IEEE RA-L 2025, Fig. 4 (© 2025 IEEE).</sub>
+</p>
+
 That makes the asymmetric joint a tool for sections that mainly work in one direction. The prototype flips every other link instead, so that it can bend both ways. Its rods are superelastic NiTi rather than braided tendons: they are the actuators and also a flexible backbone, whose stiffness keeps the short-lever joints from buckling.
+
+<p align="center">
+  <img src="docs/media/joints.png" width="400" alt="Three drawings: straight links with the two rods in blue, one link rolling on the link below, and a joint between two forward-bent links rolling backward">
+  <br><sub>Left: every other link is flipped (rods in blue). Middle: a link rolling on its arc, with the rods bending across the gap.<br>Right: a short-lever joint buckling backward. Left and right adapted from Lari &amp; Russo, IEEE RA-L 2025, Fig. 4 (© 2025 IEEE).</sub>
+</p>
 
 ## Why it needs a model
 
@@ -31,6 +41,11 @@ That makes it a base for what comes next: model-based control, estimating the sh
 The model is a corrected version of the one in the paper ([what changed](#model-notes)). The robot was originally designed to steer chest tubes from the inside; the paper covers that application.
 
 ## The robot
+
+<p align="center">
+  <img src="docs/media/prototype.jpg" width="720" alt="The prototype on the bench: the actuation box, lid off, shows the spool and the two rods running into the robot">
+  <br><sub>The prototype with its actuation box open: a Dynamixel motor turns the spool that winds the two NiTi rods.</sub>
+</p>
 
 The prototype is one section of 15 rigid 3D-printed links, each 15 mm long and 6.2 mm across, stacked above a fixed base. Each link is flat on top. Its underside is two tangent arcs with radii $R_1$ and $R_2$, which meet at the crest, and the link rolls without slipping on the flat top of the link below, on whichever arc it tilts toward.
 
@@ -128,6 +143,17 @@ Two details keep it robust:
 ### From angles to RViz
 
 URDF has no rolling joint, so [`lopsy.urdf.xacro`](src/lopsy_description/urdf/lopsy.urdf.xacro) builds each one from four joints, two per arc: a prismatic joint that moves the link by $R\,\theta$ along the top of the link below, and a revolute joint about the arc's centre. The prismatic joints are `<mimic>` copies of the revolute ones. `j{i}_roll_l` carries $\theta_i$ when it is positive and `j{i}_roll_r` when it is negative, with the arc spans $\alpha_i$ and $\beta_i$ as limits. The model node publishes these 30 roll joints, and `robot_state_publisher` fills in the slides and broadcasts the transforms.
+
+<!--
+  MEDIA · RViz close-up
+  Needs a new screenshot: nothing in the thesis images shows RViz. Two or three links at a clear bend,
+  showing a link rolling on its arc (TF axes on can help), or the left rod pulled vs the right rod pulled.
+  Save as docs/media/rviz_rolling.png, then uncomment the lines below. Delete this block if you skip it.
+
+<p align="center">
+  <img src="docs/media/rviz_rolling.png" width="600" alt="Close-up of the links rolling on their arcs in RViz">
+</p>
+-->
 
 Positive angles bend the robot toward +x of `base_link`. Odd links are drawn orange and even links blue.
 
@@ -255,6 +281,17 @@ A few things to know before changing them:
 - $E$ was identified with $r = 0.3$ mm. If you change $r$, scale $E$ so that $E r^4$ stays the same.
 - $\mu$ is an effective coefficient: it also absorbs the $|\theta|$ approximation of the wrap angle, which is why it is high for NiTi on PLA.
 - $A_2$ can't be identified from shape data, so it stays at its nominal 1 mm. Measure it on a printed link if you can.
+
+<!--
+  MEDIA (optional) · model vs measurement
+  Modelled shapes drawn over the measured marker positions for one loading run, from the identification.
+  Don't use the thesis plot (Results/Robot Configurations.jpg): it shows the original model, not this one.
+  Save as docs/media/model_vs_measured.png, then uncomment the lines below. Delete this block if you skip it.
+
+<p align="center">
+  <img src="docs/media/model_vs_measured.png" width="600" alt="Modelled shapes over measured marker positions for one loading run">
+</p>
+-->
 
 ## Code layout
 
