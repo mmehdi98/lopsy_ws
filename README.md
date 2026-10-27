@@ -7,7 +7,7 @@
 [![IEEE RA-L](https://img.shields.io/badge/IEEE%20RA--L-10.1109%2FLRA.2025.3597860-00629B)](https://doi.org/10.1109/LRA.2025.3597860)
 
 <p align="center">
-  <img src="docs/media/lopsy_demo.gif" width="720" alt="Lopsy bending left and right in RViz as the rod tensions change">
+  <img src="docs/media/lopsy_demo.gif" alt="Lopsy bending left and right in RViz as the rod tensions change">
 </p>
 
 ## Why asymmetric
